@@ -24,11 +24,7 @@ package com.extendedclip.papi.expansion.player;
 import me.clip.placeholderapi.PlaceholderAPIPlugin;
 import me.clip.placeholderapi.expansion.Configurable;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
@@ -38,15 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.extendedclip.papi.expansion.player.PlayerUtil.format12;
-import static com.extendedclip.papi.expansion.player.PlayerUtil.format24;
-import static com.extendedclip.papi.expansion.player.PlayerUtil.getBiome;
-import static com.extendedclip.papi.expansion.player.PlayerUtil.getCapitalizedBiome;
-import static com.extendedclip.papi.expansion.player.PlayerUtil.getCardinalDirection;
-import static com.extendedclip.papi.expansion.player.PlayerUtil.getEmptySlots;
-import static com.extendedclip.papi.expansion.player.PlayerUtil.getTotalExperience;
-import static com.extendedclip.papi.expansion.player.PlayerUtil.getXZDirection;
-import static com.extendedclip.papi.expansion.player.PlayerUtil.itemInHand;
+import static com.extendedclip.papi.expansion.player.PlayerUtil.*;
 
 public final class PlayerExpansion extends PlaceholderExpansion implements Configurable {
     private String low;
@@ -137,6 +125,8 @@ public final class PlayerExpansion extends PlaceholderExpansion implements Confi
 
         Player p = player.getPlayer();
 
+        if (p == null) return "";
+
         if (identifier.startsWith("has_permission_")) {
             if (identifier.split("has_permission_").length > 1) {
                 String perm = identifier.split("has_permission_")[1];
@@ -168,7 +158,22 @@ public final class PlayerExpansion extends PlaceholderExpansion implements Confi
             return "0";
         }
 
+        if (identifier.startsWith("has_unlocked_recipe_")) {
+            if (identifier.split("has_unlocked_recipe_").length > 1) {
+                String recipeName = identifier.split("has_unlocked_recipe_")[1];
+                try {
+                    return bool(p.hasDiscoveredRecipe(NamespacedKey.minecraft(recipeName)));
+                } catch (IllegalArgumentException e) {
+                    return "invalid recipe"; // could be false instead
+                }
+            }
+            return bool(false);
+        }
+
+
         switch (identifier) {
+            case "recipes_list":
+                return p.getDiscoveredRecipes().toString(); // sort of ugly (i dont see the use case either)
             case "has_empty_slot":
                 return bool(p.getInventory().firstEmpty() > -1);
             case "empty_slots":
